@@ -4,12 +4,10 @@
 <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:8B5CF6,50:6366F1,100:06B6D4&height=200&section=header&text=hatyibei&fontSize=52&fontColor=ffffff&animation=twinkling&fontAlignY=35&desc=AI%20Engineer%20%7C%20Full-Stack%20Developer&descSize=18&descAlignY=55&descColor=E2E8F0"/>
 
 <!-- ============================================================ -->
-<!--                     TYPING ANIMATION                         -->
+<!--                     NEON SIGN ANIMATION                      -->
 <!-- ============================================================ -->
 <p align="center">
-  <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=1000&color=8B5CF6&center=true&vCenter=true&random=false&width=620&lines=Building+intelligent+experiences+with+AI;LLM+Applications+%7C+Cloud+Architecture+%7C+OSS;Turning+ideas+into+products+that+ship+%F0%9F%9A%80" alt="Typing SVG" />
-  </a>
+  <img src="./assets/neon-sign.svg" alt="Neon Sign" width="100%" />
 </p>
 
 <!-- ============================================================ -->
@@ -18,16 +16,9 @@
 
 ## &nbsp; About Me
 
-```yaml
-name: hatyibei
-location: Japan
-role: AI & Full-Stack Engineer
-focus:
-  - Large Language Models & AI Applications
-  - Cloud-Native Architecture (GCP)
-  - Developer Tools & CLI
-  - Open Source
-```
+<div align="center">
+  <img src="./assets/retro-terminal.svg" alt="Retro Terminal" width="520" />
+</div>
 
 <br/>
 
@@ -56,6 +47,14 @@ focus:
     <img src="https://img.shields.io/badge/gen--diag.com-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" />
   </a>
 </p>
+
+<br/>
+
+<!-- ============================================================ -->
+<!--                    MATRIX RAIN DIVIDER                       -->
+<!-- ============================================================ -->
+
+<img src="./assets/matrix-rain.svg" alt="Matrix Rain" width="100%" />
 
 <br/>
 
