@@ -40,6 +40,26 @@ focus:
 <br/>
 
 <!-- ============================================================ -->
+<!--                      CONNECT                                 -->
+<!-- ============================================================ -->
+
+<p align="center">
+  <a href="https://x.com/hatyibeiSE">
+    <img src="https://img.shields.io/badge/𝕏-000000?style=for-the-badge&logo=x&logoColor=white" />
+  </a>
+  &nbsp;
+  <a href="https://zenn.dev/hatyibei">
+    <img src="https://img.shields.io/badge/Zenn-3EA8FF?style=for-the-badge&logo=zenn&logoColor=white" />
+  </a>
+  &nbsp;
+  <a href="https://gen-diag.com">
+    <img src="https://img.shields.io/badge/gen--diag.com-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" />
+  </a>
+</p>
+
+<br/>
+
+<!-- ============================================================ -->
 <!--                       TECH STACK                             -->
 <!-- ============================================================ -->
 
