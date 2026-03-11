@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 120" width="100%">
+  <style>
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+      20%, 24%, 55% { opacity: 0.6; }
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: url(#glow-strong); }
+      50% { filter: url(#glow-dim); }
+    }
+    @keyframes cursor-blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    .neon-text {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 36px;
+      animation: flicker 4s ease-in-out infinite;
+    }
+    .neon-sub {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      animation: flicker 6s 1s ease-in-out infinite;
+    }
+    .cursor {
+      animation: cursor-blink 1s steps(1) infinite;
+    }
+  </style>
+  <defs>
+    <filter id="glow-strong" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b2"/>
+      <feMerge>
+        <feMergeNode in="b2"/>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-dim" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b1"/>
+      <feMerge>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b2"/>
+      <feMerge>
+        <feMergeNode in="b2"/>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="120" fill="#0D1117" rx="6"/>
+  <!-- Purple neon main text -->
+  <g filter="url(#glow-strong)">
+    <text class="neon-text" x="400" y="55" text-anchor="middle" fill="#8B5CF6">&lt; hatyibei /&gt;</text>
+  </g>
+  <!-- Cyan neon subtitle -->
+  <g filter="url(#glow-cyan)">
+    <text class="neon-sub" x="400" y="90" text-anchor="middle" fill="#06B6D4">AI &amp; Full-Stack Engineer</text>
+  </g>
+  <!-- Blinking cursor -->
+  <text class="cursor" x="533" y="90" fill="#06B6D4" font-family="monospace" font-size="14">_</text>
+</svg>
