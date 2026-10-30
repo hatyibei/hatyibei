@@ -337,9 +337,15 @@
       art.innerHTML = `<g class="drawing">${s.svg}</g>`;
       art.addEventListener('click', e => {
         if (e.target.closest('a, .armor')) return;
+        if (e.target.closest('.portal')) { window.INSIDE?.enter(e.target.closest('.portal')); return; }
         openScene(s);
       });
-      art.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openScene(s); } });
+      art.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        const portal = e.target.closest('.portal');
+        portal ? window.INSIDE?.enter(portal) : openScene(s);
+      });
       const k = document.createElement('div');
       k.className = 'kotoba';
       k.innerHTML = `<span class="no">${s.no}</span><h2>${s.title}</h2><p class="era">${s.era}</p>` +
@@ -469,7 +475,18 @@
     target = Math.min(maxP, Math.max(0, target));
     p += (target - p) * Math.min(1, dt * (reduced ? 30 : 7));
     const camX = maxP - p;
-    world.style.transform = `translate3d(${-camX}px,0,0)`;
+    // diving into a picture: everything scales toward one point, the near things fastest
+    const zm = view.zoom;
+    if (zm.z !== 1) {
+      const zt = (k, el) => { el.style.transformOrigin = `${zm.ox}px ${zm.oy}px`; el.style.transform = `scale(${Math.pow(zm.z, k)})`; };
+      world.style.transformOrigin = '0 0';
+      world.style.transform = `translate(${zm.ox}px,${zm.oy}px) scale(${zm.z}) translate(${-zm.ox}px,${-zm.oy}px) translate3d(${-camX}px,0,0)`;
+      zt(.3, bg); zt(.75, fg);
+    } else {
+      world.style.transform = `translate3d(${-camX}px,0,0)`;
+      if (bg.style.transform) { bg.style.transform = ''; fg.style.transform = ''; }
+    }
+    if (view.hidden) { requestAnimationFrame(frame); return; }
 
     bctx.clearRect(0, 0, W, H);
     drawSky(t);
@@ -507,9 +524,19 @@
     requestAnimationFrame(frame);
   };
 
+  // ---------- what the inside of the television needs from here ----------
+  const view = {
+    zoom: { z: 1, ox: 0, oy: 0 },
+    hidden: false,
+    colors: () => brushColors(),
+    get dpr() { return DPR; },
+  };
+  window.EMAKI_VIEW = view;
+
   // ---------- input ----------
   stage.addEventListener('wheel', e => {
     e.preventDefault();
+    if (window.INSIDE?.active) return;
     const m = e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? H : 1;
     target += (e.deltaY - e.deltaX) * m;
     vel = 0;
@@ -563,7 +590,7 @@
 
   let typed = '';
   addEventListener('keydown', e => {
-    if (sheet.open) return;
+    if (sheet.open || window.INSIDE?.active) return;
     const step = W * .6;
     if (['ArrowLeft', 'ArrowDown', 'PageDown'].includes(e.key) || (e.key === ' ' && e.target === document.body)) { target += step; e.preventDefault(); }
     else if (['ArrowRight', 'ArrowUp', 'PageUp'].includes(e.key)) { target -= step; e.preventDefault(); }

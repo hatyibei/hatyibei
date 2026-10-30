@@ -170,6 +170,7 @@
       <path class="ln" d="M58 96 L58 69 L76 69 L76 96"/>
       <rect class="tv-halo" x="94" y="64" width="46" height="27" rx="4"/>
       <rect class="tv" x="100" y="68" width="34" height="19"/>
+      <rect class="portal" x="96" y="64" width="42" height="26" fill="transparent" role="button" tabindex="0" aria-label="テレビの中へ入る"/>
       <circle class="backlit" cx="111" cy="76.5" r="3"/>
       <path class="backlit" d="M104.5 87 Q111 79.5 117.5 87 Z"/>
       <circle class="backlit" cx="124" cy="79.4" r="2.3"/>
@@ -507,5 +508,111 @@
       <li><a href="https://zenn.dev/hatyibei" target="_blank" rel="noopener">Zenn</a></li>
     </ul>`;
 
-  window.EMAKI = { scenes, notebook };
+
+  // ---------- inside the television: the farm, in depth planes ----------
+  // Each plane is painted on its own canvas; units: 100 = plane height, B.W = plane width.
+  const inside = {
+    far(B) {
+      const { noise } = window.BRUSH, r = B.r;
+      // two far mountain masses of 米点, mist between them and below
+      const masses = [[B.W * .22, 30, B.W * .22], [B.W * .74, 24, B.W * .26]];
+      const crest = x => {
+        let y = 60;
+        for (const [cx, top, half] of masses) {
+          const d = Math.abs(x - cx) / half;
+          if (d < 1) y = Math.min(y, top + (60 - top) * Math.pow(d, 1.4) + (noise(x / 5, 7) - .5) * 5);
+        }
+        return y;
+      };
+      for (let x = 0; x < B.W; x += .9) {
+        const y = crest(x);
+        if (y > 57) continue;
+        B.side([[x, y], [x + .3, y + 10 + r() * 6]], 1.6, { a: .1, dry: .9 });
+        for (let k = 0; k < 3; k++) {
+          const t = Math.pow(r(), 2.4);
+          B.dot(x + r(), y + t * 16, .7 + r() * .8, { a: (.4 + r() * .3) * (1 - t), wide: 2.1 });
+        }
+      }
+    },
+    mid(B) {
+      const r = B.r, bx = B.W * .64;
+      // the barn
+      B.paper([[bx - 30, 56], [bx, 33], [bx + 30, 56], [bx + 25, 79], [bx - 25, 79]], 2.5);
+      for (let y = 36; y < 56; y += 2.2) {
+        const hw = (y - 32.5) * 1.25;
+        B.side([[bx + hw - .5, y + r() * .4], [bx - hw + .5, y + .3]], 2.4, { a: .5 - (y - 36) * .012, dry: .85 + r() * .3 });
+      }
+      B.stroke([[bx - 31, 56.5], [bx, 32.3]], 1.5, { a: .92, dry: .4 });
+      B.stroke([[bx, 32.3], [bx + 31, 56.5]], 1.5, { a: .88, dry: .5 });
+      B.stroke([[bx - 23, 57], [bx - 23.3, 76]], 1.1, { a: .75, dry: .8 });
+      B.stroke([[bx + 23, 57], [bx + 22.7, 73]], 1.1, { a: .7, dry: .9 });
+      B.stroke([[bx - 22, 60], [bx + 22, 60.5]], .5, { a: .35, dry: .9 });
+      // the open door: dark, laid in with short horizontal sweeps like planks in shadow
+      for (let y = 64.5; y < 78; y += 1.6) B.side([[bx - 6.5, y + r() * .3], [bx + 6.5, y + r() * .3]], 1.9, { a: .42 + r() * .12, dry: .5 });
+      B.stroke([[bx - 7, 63.5], [bx - 7.2, 78]], .8, { a: .8 }); B.stroke([[bx + 7, 63.5], [bx + 6.8, 77]], .7, { a: .7 });
+      B.blob(bx, 47, 3.2, 2.6, { a: .55, rough: .2 });
+      if (B.time === 'night' || B.time === 'evening') B.glow(bx - 2.6, 45, 5.2, 4.2, 'rgb(241, 196, 106)', .9, .6);
+      // a path running from the gate toward the barn: the eye walks it into depth
+      B.side([[B.W * .46, 100], [B.W * .53, 86], [bx - 4, 79]], 1.2, { a: .3, dry: 1.1 });
+      B.side([[B.W * .6, 100], [B.W * .6, 86], [bx + 3, 79]], 1, { a: .26, dry: 1.1 });
+      // broadleaf trees: 没骨 blots of foliage
+      for (const [tx, ty, s] of [[B.W * .2, 74, 1.1], [B.W * .27, 76, .8], [B.W * .86, 75, 1]]) {
+        B.stroke([[tx, ty + 6], [tx + .4, ty - 6 * s]], 1.2 * s, { a: .8, dry: .5 });
+        for (let i = 0; i < 9; i++) B.blob(tx + (r() - .5) * 13 * s, ty - 9 * s - r() * 9 * s, (2.4 + r() * 2.6) * s, (1.6 + r() * 1.4) * s, { a: .3 + r() * .3, rough: .55 });
+      }
+      // the pasture fence running across
+      B.side([[0, 79], [B.W * .5, 78.2], [B.W, 79.4]], .6, { a: .45, dry: 1.1 });
+      for (let x = 3; x < B.W; x += 9 + r() * 3) B.stroke([[x, 82], [x + .2, 76]], .5, { a: .55, dry: .7 });
+    },
+    field(B) {
+      const r = B.r;
+      for (const p of inside.plots(B.W)) {
+        // a low bed of turned earth: a soft blot, its furrows as short dry dashes
+        B.blob(p.x, p.y + .6, 9, 2.3, { a: .34, rough: .35 });
+        const n = 4 + Math.floor(r() * 3);
+        for (let j = 0; j < n; j++) {
+          const fx = p.x - 7.5 + r() * 13, fy = p.y - .8 + r() * 2.4;
+          B.side([[fx, fy], [fx + 1.2 + r() * 2.8, fy + (r() - .5) * .5]], .4 + r() * .3, { a: .3 + r() * .35, dry: .8 });
+        }
+      }
+      for (let i = 0; i < 46; i++) B.dot(r() * B.W, 66 + r() * 28, .3 + r() * .4, { a: .5, wide: 1.6 });
+    },
+    near(B) {
+      const r = B.r;
+      // a branch of pine hanging in from the top left, as in a hanging scroll
+      B.stroke([[-2, 6], [10, 9], [22, 7], [33, 12]], 2.6, { a: .92, dry: .5 });
+      B.stroke([[14, 8.4], [20, 15], [24, 21]], 1.3, { a: .85, dry: .6 });
+      for (const [x, y, rad] of [[31, 11, 7], [24, 20, 6], [17, 6.5, 5.5], [8, 9, 5]]) B.needles(x, y + 2, rad, { a: .85, n: 15, spread: 3.4, tilt: Math.PI / 2 * .2 });
+      // grass at the foot of the frame
+      for (let i = 0; i < 26; i++) {
+        const x = (i < 13 ? r() * B.W * .25 : B.W * .75 + r() * B.W * .25), h = 6 + r() * 9;
+        B.stroke([[x, 100], [x + (r() - .5) * 3, 100 - h * .6], [x + (r() - .5) * 6, 100 - h]], .5 + r() * .4, { a: .75, dry: .5 });
+      }
+    },
+    // where the six plots lie on the field plane (units)
+    plots(W) {
+      const cx = W * .42, out = [];
+      for (let row = 0; row < 2; row++) for (let i = 0; i < 3; i++) out.push({ x: cx + (i - 1) * 19 + row * 6, y: 72 + row * 10 });
+      return out;
+    },
+    // a plant at its stage of growth: 0 seed, 1 sprout, 2 leaves, 3 flower, 4 fruit
+    plant(B, stage) {
+      const cx = B.W / 2, base = 92, r = B.r;
+      B.blob(cx, base, 16, 4, { a: .35, rough: .3 });
+      if (stage === 0) { for (let i = 0; i < 3; i++) B.dot(cx - 5 + i * 5, base - 2, 1.4, { a: .8 }); return; }
+      const h = [0, 18, 42, 62, 70][stage];
+      B.stroke([[cx, base - 1], [cx + 2, base - h * .5], [cx - 1, base - h]], stage > 2 ? 2.2 : 1.6, { a: .85, dry: .3 });
+      const leaves = [0, 2, 5, 7, 8][stage];
+      for (let i = 0; i < leaves; i++) {
+        const side = i % 2 ? 1 : -1, y = base - h * (.25 + (i / leaves) * .65);
+        B.blob(cx + side * (6 + r() * 4), y, 6 + r() * 3, 2.4, { a: .55 + r() * .2, rot: side * -.5, rough: .3 });
+      }
+      if (stage >= 3) B.blob(cx - 1, base - h - 2, 4, 3.2, { a: .7 });
+      if (stage === 4) for (const [dx, dy] of [[-8, -h * .55], [7, -h * .45], [-3, -h * .3]]) {
+        B.blob(cx + dx, base + dy, 4.6, 4.2, { a: .95, rough: .15, shu: true });
+      }
+    },
+  };
+
+  window.EMAKI = { scenes, notebook, inside, fig, chick };
 })();

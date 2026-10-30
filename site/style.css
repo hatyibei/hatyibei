@@ -444,6 +444,98 @@ a { color: inherit; }
 .bridge-demo .note { font-size: 12px; color: var(--muted); }
 @keyframes lane { from { opacity: 0; transform: translateX(8px); } }
 
+/* ---------- inside the television ---------- */
+.portal { cursor: zoom-in; }
+.portal:focus-visible { outline: 1px dashed var(--shu); }
+#flash {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at var(--ox, 50%) var(--oy, 50%), #f4f9fb 0%, var(--screen) 35%, var(--paper) 100%);
+}
+#inside {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  overflow: hidden;
+  perspective: 900px;
+  background: var(--paper);
+}
+#inside[hidden] { display: none; }
+#inside .rig {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+#inside .plane {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  opacity: 0;
+  transform-style: preserve-3d;
+}
+#inside .plane canvas { position: absolute; inset: 0; }
+#inside .plane.mist { background: linear-gradient(to bottom, transparent 30%, color-mix(in srgb, var(--paper) 70%, transparent) 62%, transparent 92%); }
+#inside .residents { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#inside .residents .sil { filter: url(#inkblot); }
+/* こだま: small lights drifting over the farm, faint by day and bright at night */
+#inside .kodama { fill: rgb(var(--spirit)); opacity: .35; filter: url(#smoke); animation: kodama calc(7s + var(--i) * .9s) ease-in-out infinite alternate; animation-delay: calc(var(--i) * -1.3s); transform-box: fill-box; }
+:root[data-time="night"] #inside .kodama, :root[data-time="evening"] #inside .kodama { opacity: .95; }
+@keyframes kodama { from { transform: translate(0, 0); } 50% { transform: translate(3px, -4px); } to { transform: translate(-2px, -1px); } }
+#inside .plot {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 40% 40% 12px 12px;
+}
+#inside .plot canvas { position: absolute; inset: 0; pointer-events: none; }
+#inside .plot:hover { background: radial-gradient(ellipse at 50% 88%, color-mix(in srgb, var(--shu) 16%, transparent), transparent 60%); }
+#inside .plot:focus-visible { outline: 1px dashed var(--shu); }
+#inside .plot span {
+  position: absolute;
+  left: 50%;
+  bottom: -1.6em;
+  transform: translateX(-50%);
+  font-family: "Yuji Syuku", serif;
+  font-size: 13px;
+  color: var(--shu);
+}
+#inside .plot.rustle canvas { animation: rustle .6s ease-out; transform-origin: 50% 92%; }
+@keyframes rustle { 20% { transform: rotate(-4deg); } 50% { transform: rotate(3deg); } 80% { transform: rotate(-1deg); } }
+.inside-kotoba {
+  position: absolute;
+  right: max(24px, 6vw);
+  top: 14vh;
+  writing-mode: vertical-rl;
+  line-height: 2.1;
+  letter-spacing: .12em;
+  font-size: clamp(13px, 1.6vh, 17px);
+  text-shadow: 0 0 6px var(--paper), 0 0 2px var(--paper);
+  z-index: 2;
+}
+.inside-kotoba h2 { font-family: "Yuji Syuku", serif; font-weight: 400; font-size: 1.9em; margin: 0 0 0 .5em; letter-spacing: .18em; }
+.inside-kotoba p { margin: 0; }
+#inside .leave {
+  position: absolute;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  background: var(--ui-bg);
+  padding: 8px 18px;
+  border-radius: 2px;
+  font-size: 14px;
+  letter-spacing: .14em;
+  cursor: pointer;
+  z-index: 2;
+}
+#inside .leave:hover { border-color: var(--shu); color: var(--shu); }
+
 /* ---------- the BAN stamp ---------- */
 #stamp {
   position: fixed;

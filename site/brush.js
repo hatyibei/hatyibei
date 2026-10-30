@@ -6,7 +6,7 @@
 (() => {
   const WASH_DABS = 26;
   // painting by hand: lights and backlit figures are painted too, only motion stays SVG
-  const KEEP_HAND = '.pace, .peck, .puff, .bob, .swing, .carry, .think, .armor, .hachi, a, .kousatsu, .keep, .lamp-halo, .torch, .thread, .flow, text';
+  const KEEP_HAND = '.portal, .pace, .peck, .puff, .bob, .swing, .carry, .think, .armor, .hachi, a, .kousatsu, .keep, .lamp-halo, .torch, .thread, .flow, text';
   const KEEP = '.pace, .peck, .puff, .bob, .swing, .carry, .think, .armor, .hachi, a, .kousatsu, .keep, .tv, .tv-halo, .lamp, .lamp-halo, .torch, .backlit, .thread, .flow, text';
 
   const hash = (i, s) => {
@@ -188,7 +188,7 @@
       },
       // 没骨: a shape made of a single wet blot, no outline
       blob(cx, cy, rx, ry, o = {}) {
-        const a = o.a ?? .5, rot = o.rot ?? 0;
+        const a = o.a ?? .5, rot = o.rot ?? 0, ink = o.shu ? colors.shu : colors.line;
         const [X, Y] = P([cx, cy]);
         const RX = px(rx), RY = px(ry);
         const s = seed++;
@@ -204,13 +204,13 @@
           ctx.closePath();
         };
         if (filterOK(ctx)) ctx.filter = `blur(${Math.max(1, Math.min(RX, RY) * .25)}px)`;
-        ctx.fillStyle = `rgba(${colors.line}, ${a * .55})`;
+        ctx.fillStyle = `rgba(${ink}, ${a * .55})`;
         shape(1.08); ctx.fill();
         ctx.filter = 'none';
-        ctx.fillStyle = `rgba(${colors.line}, ${a * .45})`;
+        ctx.fillStyle = `rgba(${ink}, ${a * .45})`;
         shape(.92); ctx.fill();
         if (filterOK(ctx)) ctx.filter = `blur(${Math.max(.6, dpr * .5)}px)`;
-        ctx.strokeStyle = `rgba(${colors.line}, ${a * .35})`;
+        ctx.strokeStyle = `rgba(${ink}, ${a * .35})`;
         ctx.lineWidth = Math.max(1, dpr * .9);
         shape(.95); ctx.stroke();
         ctx.filter = 'none';
@@ -352,5 +352,21 @@
     return grainPattern;
   };
 
-  window.BRUSH = { paint, stroke, hash, noise };
+  // Paint a free-standing canvas by hand. Units: 100 = canvas height; B.W is the width in units.
+  const paintCanvas = (canvas, wPx, hPx, colors, dpr, fn, seed = 5) => {
+    canvas.width = Math.round(wPx * dpr); canvas.height = Math.round(hPx * dpr);
+    canvas.style.width = `${wPx}px`; canvas.style.height = `${hPx}px`;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const B = painter(ctx, hPx / 100, 0, dpr, colors, seed);
+    B.W = wPx / (hPx / 100);
+    fn(B);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = grain(ctx);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'source-over';
+  };
+
+  window.BRUSH = { paint, paintCanvas, stroke, hash, noise };
 })();
