@@ -302,7 +302,13 @@
       <path class="ln thin" d="M146 70 L137 64"/>
       <rect class="lamp" x="42" y="58" width="5" height="7"/><rect class="lamp" x="160" y="58" width="5" height="7"/>
       <path class="ln" d="M90 96 L90 86 L116 86 L116 96 M90 90 L116 90"/>
-      ${ground(220)}`;
+      <g class="kousatsu">
+        <path class="ln" d="M232 96 L232 52 M262 96 L262 52"/>
+        <path class="base" d="M226 50 L247 42 L268 50 Z"/><path class="wash2" d="M226 50 L247 42 L268 50 Z"/><path class="ln" d="M225 50.5 L247 41.5 L269 50.5"/>
+        <rect class="base" x="230" y="52" width="34" height="34"/><rect class="ln" x="230" y="52" width="34" height="34"/>
+        <g class="tanzaku-slot"><text class="svg-text v" x="247" y="56" font-size="3.6" text-anchor="start">記事は Zenn に</text></g>
+      </g>
+      ${ground(272)}`;
   })();
 
   // ---------- 11. 峠 ----------
@@ -358,7 +364,7 @@
       more: `<p>卒業制作は、oVice のような仮想オフィスをモチーフにした「仮想学校」。チームのリーダーとして、企画・設計・サーバー構築・実装をひと通り担当し、Java で WebSocket のリアルタイム通信を組んだ。</p><p>マイクラの鯖と同じで、作っていたのは「人が住む場所」だった。</p>`,
     },
     {
-      id: 'suiro', no: '六', title: '水路と鐘', era: '二〇二三〜二〇二五', w: 240, svg: s6,
+      water: true, id: 'suiro', no: '六', title: '水路と鐘', era: '二〇二三〜二〇二五', w: 240, svg: s6,
       kotoba: ['すでにある世界の、', '手入れをした。', '水路を見回り、', '鐘を新しい櫓へ移した。'],
       more: `<p>2023年4月、SIer（株式会社エスシーシー）に新卒で入社。クレジットカード会社向けスマホアプリの保守開発で、Java / Oracle DB / SQL を使って機能改善、不具合調査、データ調査をしていた。</p><p>2024年4月〜2025年2月は、PUSH 通知基盤のマイグレーションを担当。移行設計と、Shell Script によるバッチを作った。</p><p>壊さずに、手をかけ続ける。牧場と同じ仕事。</p>`,
     },
@@ -368,8 +374,8 @@
       more: `<p>2025年8月、社内の AI テックリードチームへ異動。Azure DevOps・Redmine・チャットツールをつなぐ進捗管理エージェントを、Python + Azure OpenAI で企画から導入まで担当した。</p><p>頭の中の世界を、具体にできる。それに感動したのが、AI に本気になったきっかけ。</p>`,
     },
     {
-      id: 'hashi', no: '八', title: '橋', era: 'zero-config-cli-bridge', w: 250, svg: s8,
-      kotoba: ['村の外にある力を、', '村へ通す橋。', '設定は、いらない。'],
+      id: 'hashi', no: '八', title: '橋', era: 'zero-config-cli-bridge', w: 250, svg: s8, demo: 'bridge', water: true,
+      kotoba: ['村の外にある力を、', '村へ通す橋。', '設定は、いらない。', '渡れるものと、渡れないもの。'],
       more: `<p>手元の CLI を、そのまま AI エージェントの道具として使えるようにする MCP ミドルウェア。設定ゼロで、ローカルの力をエージェントの世界へ渡す。</p>`,
       links: [['npm', 'https://www.npmjs.com/package/zero-config-cli-bridge'], ['GitHub', 'https://github.com/hatyibei/zero-config-cli-bridge']],
     },
@@ -380,9 +386,9 @@
       links: [['gen-diag.com', 'https://gen-diag.com']],
     },
     {
-      id: 'terakoya', no: '十', title: '寺子屋', era: '勉強会・出張授業', w: 220, svg: s10,
-      kotoba: ['見てきた世界の話を、', '次の人に。'],
-      more: `<p>社内で AI 勉強会を主催し、高校生向けに AI の出張授業をした。</p>`,
+      id: 'terakoya', no: '十', title: '寺子屋', era: '勉強会・出張授業・Zenn', w: 272, svg: s10, feed: 'zenn',
+      kotoba: ['見てきた世界の話を、', '次の人に。', '高札には、書いたものを貼る。'],
+      more: `<p>社内で AI 勉強会を主催し、高校生向けに AI の出張授業をした。</p><p>高札には、Zenn に書いた記事を貼っている。</p>`,
     },
     {
       id: 'touge', no: '十一', title: '峠', era: '二〇二六〜', w: 260, svg: s11,

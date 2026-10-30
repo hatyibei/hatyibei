@@ -278,6 +278,9 @@ a { color: inherit; }
 }
 .notebook-btn:hover { border-color: var(--shu); color: var(--shu); }
 
+.hud-right { display: flex; gap: 8px; }
+#sound-btn[aria-pressed="true"] { color: var(--shu); border-color: var(--shu); }
+
 /* ---------- scroll position ---------- */
 #scrollbar {
   position: fixed;
@@ -397,6 +400,45 @@ a { color: inherit; }
 .sheet-body table { border-collapse: collapse; width: 100%; font-size: 14px; }
 .sheet-body td { padding: 6px 0; vertical-align: top; border-bottom: 1px solid color-mix(in srgb, var(--line) 12%, transparent); line-height: 1.7; }
 .sheet-body td:first-child { width: 6.5em; color: var(--muted); white-space: nowrap; padding-right: 12px; }
+
+/* feeds (Zenn, GitHub) */
+.sheet-body .feed { list-style: none; padding: 0; margin: 0; }
+.sheet-body .feed li { padding: 9px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 12%, transparent); line-height: 1.6; }
+.sheet-body .feed a { text-decoration: none; font-weight: 600; }
+.sheet-body .feed a:hover { color: var(--shu); }
+.sheet-body .feed .emoji { margin-right: .4em; }
+.sheet-body .feed .desc { display: block; font-size: 13px; color: var(--text); opacity: .8; }
+.sheet-body .feed .meta { display: block; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+
+/* 橋: walking a request across the layers */
+.bridge-demo .asks { display: flex; flex-direction: column; gap: 6px; }
+.bridge-demo .asks button {
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  background: none;
+  padding: 8px 12px;
+  border-radius: 2px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.bridge-demo .asks button:hover { border-color: var(--shu); color: var(--shu); }
+.bridge-demo .lanes { list-style: none; padding: 0; margin: 14px 0 0; min-height: 40px; }
+.bridge-demo .lanes li {
+  display: grid;
+  grid-template-columns: 7.5em 1fr;
+  gap: 10px;
+  padding: 8px 0 8px 12px;
+  border-left: 3px solid var(--line);
+  margin-bottom: 4px;
+  font-size: 14px;
+  line-height: 1.65;
+  animation: lane .4s ease-out both;
+}
+.bridge-demo .lanes li b { font-weight: 600; }
+.bridge-demo .lanes li.pass { border-left-style: dashed; opacity: .7; }
+.bridge-demo .lanes li.stop { border-left-color: var(--shu); color: var(--shu); }
+.bridge-demo .note { font-size: 12px; color: var(--muted); }
+@keyframes lane { from { opacity: 0; transform: translateX(8px); } }
 
 /* ---------- the BAN stamp ---------- */
 #stamp {

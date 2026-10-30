@@ -48,7 +48,10 @@
       <button role="radio" data-time="evening" aria-checked="false">夕</button>
       <button role="radio" data-time="night" aria-checked="false">夜</button>
     </div>
-    <button id="notebook-btn" class="notebook-btn">旅人の手帳</button>
+    <div class="hud-right">
+      <button id="sound-btn" class="notebook-btn" aria-pressed="false">音 ○</button>
+      <button id="notebook-btn" class="notebook-btn">旅人の手帳</button>
+    </div>
   </header>
 
   <nav id="scrollbar" aria-label="場面">
@@ -79,6 +82,7 @@
     </div>
   </noscript>
 
+  <script src="sound.js" defer></script>
   <script src="scenes.js" defer></script>
   <script src="main.js" defer></script>
 </body>

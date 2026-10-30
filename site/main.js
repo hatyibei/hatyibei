@@ -442,6 +442,16 @@
       activeIdx = best;
     }
     if (p > 30) hint.classList.add('gone');
+    if (window.SOUND?.on) {
+      // water is loudest when a river scene is in the middle of the view
+      let w = 0;
+      for (const it of items) {
+        if (!it.scene?.water) continue;
+        const d = Math.abs(it.x + it.w / 2 - (camX + W / 2)) / (W * .9);
+        w = Math.max(w, 1 - Math.min(1, d));
+      }
+      window.SOUND.setWater(w);
+    }
     requestAnimationFrame(frame);
   };
 
@@ -518,12 +528,121 @@
     sheetBody.innerHTML = html;
     sheet.showModal();
     sheet.scrollTop = 0;
+    window.SOUND?.knock(2);
   };
   const openScene = s => {
     const links = s.links ? `<ul class="links">${s.links.map(([l, h]) => `<li><a href="${h}" target="_blank" rel="noopener">${l}</a></li>`).join('')}</ul>` : '';
     openSheet(`<h2 id="sheet-title">${s.no}　${s.title}</h2><p class="era">${s.era}</p>${s.more}${links}`);
+    if (s.demo === 'bridge') mountBridge(sheetBody);
+    if (s.feed === 'zenn') sheetBody.insertAdjacentHTML('beforeend', zennList());
   };
-  function openNotebook() { openSheet(notebook); }
+  function openNotebook() { openSheet(notebook + reposList()); }
+
+  // ---------- the real things behind the pictures ----------
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const fmtDate = d => { const t = new Date(d); return isNaN(t) ? '' : `${t.getFullYear()}.${String(t.getMonth() + 1).padStart(2, '0')}.${String(t.getDate()).padStart(2, '0')}`; };
+  const feeds = { zenn: null, repos: null };
+
+  // Prefer the snapshot the deploy job wrote; fall back to asking the source directly.
+  const getJSON = async (...urls) => {
+    for (const u of urls) {
+      try {
+        const r = await fetch(u);
+        if (r.ok) return await r.json();
+      } catch { /* try the next one */ }
+    }
+    return null;
+  };
+  const loadFeeds = async () => {
+    const z = await getJSON('data/zenn.json', 'https://zenn.dev/api/articles?username=hatyibei&order=latest');
+    if (z?.articles) {
+      feeds.zenn = z.articles.slice(0, 12).map(a => ({
+        title: a.title, emoji: a.emoji, date: a.published_at, likes: a.liked_count,
+        url: a.url || `https://zenn.dev${a.path}`,
+      }));
+      hangTanzaku();
+    }
+    const g = await getJSON('data/github.json', 'https://api.github.com/users/hatyibei/repos?sort=pushed&per_page=30');
+    if (Array.isArray(g)) {
+      feeds.repos = g.filter(r => !r.fork && r.name !== 'hatyibei').slice(0, 8).map(r => ({
+        name: r.name, desc: r.description, url: r.html_url, pushed: r.pushed_at, stars: r.stargazers_count, lang: r.language,
+      }));
+    }
+  };
+
+  // Zenn articles go up on the 高札 as paper strips, newest on the right.
+  const hangTanzaku = () => {
+    const slot = document.querySelector('#terakoya .tanzaku-slot');
+    if (!slot || !feeds.zenn?.length) return;
+    const cut = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
+    slot.innerHTML = feeds.zenn.slice(0, 4).map((a, i) => {
+      const x = 258 - i * 8;
+      return `<a href="${esc(a.url)}" target="_blank" rel="noopener" aria-label="${esc(a.title)}">
+        <rect class="base" x="${x - 3}" y="54" width="6" height="30"/><rect class="ln thin" x="${x - 3}" y="54" width="6" height="30"/>
+        <text class="svg-text v" x="${x}" y="56" font-size="3">${esc(cut(a.title, 9))}</text></a>`;
+    }).join('');
+  };
+
+  const zennList = () => {
+    if (!feeds.zenn?.length) return `<ul class="links"><li><a href="https://zenn.dev/hatyibei" target="_blank" rel="noopener">Zenn</a></li></ul>`;
+    return `<h3>高札（Zenn）</h3><ul class="feed">${feeds.zenn.map(a =>
+      `<li><a href="${esc(a.url)}" target="_blank" rel="noopener"><span class="emoji">${esc(a.emoji)}</span>${esc(a.title)}</a><span class="meta">${fmtDate(a.date)}${a.likes ? ` · ♥ ${a.likes}` : ''}</span></li>`).join('')}</ul>`;
+  };
+
+  const reposList = () => {
+    if (!feeds.repos?.length) return '';
+    return `<h3>最近手を入れた畑（GitHub）</h3><ul class="feed">${feeds.repos.map(r =>
+      `<li><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a>${r.desc ? `<span class="desc">${esc(r.desc)}</span>` : ''}<span class="meta">${fmtDate(r.pushed)}${r.lang ? ` · ${esc(r.lang)}` : ''}${r.stars ? ` · ★ ${r.stars}` : ''}</span></li>`).join('')}</ul>`;
+  };
+
+  // 橋: walk a request across zero-config-cli-bridge's real layers (from its README).
+  const mountBridge = host => {
+    host.insertAdjacentHTML('beforeend', `
+      <h3>渡してみる</h3>
+      <div class="bridge-demo">
+        <div class="asks">
+          <button data-ask="list">「cli/cli の open な issue を見せて」</button>
+          <button data-ask="delete">「issue を消して」</button>
+          <button data-ask="sneak">「消して」が第一層をすり抜けたら</button>
+        </div>
+        <ol class="lanes"></ol>
+        <p class="note">各層の動きは <a href="https://www.npmjs.com/package/zero-config-cli-bridge" target="_blank" rel="noopener">README</a> に書かれた設計どおり。トークンは橋を渡らない。</p>
+      </div>`);
+    const lanes = host.querySelector('.lanes');
+    const flows = {
+      list: [
+        ['ok', 'エージェント', 'gh_issue_list { repo: "cli/cli", state: "open" } を呼ぶ'],
+        ['ok', '第一層　自制', 'ツールは読み取り専用と書いてある。読むだけなので、通す'],
+        ['ok', '第二層　関所', 'create / delete / edit / close / merge … は含まれない。通す'],
+        ['ok', '村の外へ', 'gh issue list --repo cli/cli --state open を、手元の gh で実行（CI=true、3秒で打ち切り）'],
+        ['ok', '戻り', '結果を最大2000字に切って返す。認証は手元の gh のまま、エージェントは鍵を見ない'],
+      ],
+      delete: [
+        ['ok', 'エージェント', '「issue を消して」と頼まれる'],
+        ['stop', '第一層　自制', 'ツールの説明が読み取り専用なので、呼ぶ前に断る。橋には来ない'],
+      ],
+      sneak: [
+        ['ok', 'エージェント', 'それでも gh issue delete を通そうとする'],
+        ['pass', '第一層　自制', 'すり抜けた'],
+        ['stop', '第二層　関所', '"delete" を見つけて止める ── Mutating commands are blocked'],
+      ],
+    };
+    let run = 0;
+    host.querySelectorAll('[data-ask]').forEach(b => b.addEventListener('click', () => {
+      const id = ++run;
+      lanes.textContent = '';
+      flows[b.dataset.ask].forEach(([kind, who, what], i) => {
+        setTimeout(() => {
+          if (id !== run) return;
+          const li = document.createElement('li');
+          li.className = kind;
+          li.innerHTML = `<b>${who}</b><span>${what}</span>`;
+          lanes.appendChild(li);
+          window.SOUND?.knock(kind === 'stop' ? 2 : 1);
+        }, reduced ? 0 : i * 650);
+      });
+    }));
+  };
   document.getElementById('notebook-btn').addEventListener('click', openNotebook);
   sheet.addEventListener('click', e => { if (e.target === sheet) sheet.close(); });
 
@@ -534,7 +653,17 @@
     void stamp.offsetWidth;
     stamp.classList.add('on');
     document.getElementById('goso')?.classList.add('banned');
+    window.SOUND?.thud();
   }
+
+  // ---------- sound ----------
+  const soundBtn = document.getElementById('sound-btn');
+  soundBtn.addEventListener('click', () => {
+    const on = window.SOUND.toggle();
+    soundBtn.setAttribute('aria-pressed', String(on));
+    soundBtn.textContent = on ? '音 ◉' : '音 ○';
+    window.SOUND.setTime(root.dataset.time);
+  });
 
   // ---------- time of day ----------
   let timeMode = 'auto';
@@ -546,6 +675,7 @@
     const tm = timeMode === 'auto' ? timeFromClock() : timeMode;
     if (root.dataset.time !== tm || !C.time) {
       root.dataset.time = tm;
+      window.SOUND?.setTime(tm);
       readColors();
       tiles.clear();
       document.querySelector('meta[name="theme-color"]').content = getComputedStyle(root).getPropertyValue('--paper').trim();
@@ -559,10 +689,12 @@
   buildScenes();
   applyTime();
   layout();
-  const jump = location.hash.slice(1);
-  const start = items.find(it => it.scene && it.scene.id === jump);
+  const sceneFromHash = () => items.find(it => it.scene && it.scene.id === location.hash.slice(1));
+  const start = sceneFromHash();
   if (start) p = target = centerP(start);
+  addEventListener('hashchange', () => { const it = sceneFromHash(); if (it) target = centerP(it); });
   addEventListener('resize', () => { layout(); });
+  loadFeeds();
   document.fonts?.ready.then(() => layout());
   requestAnimationFrame(t => { last = t; frame(t); });
 })();
