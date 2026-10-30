@@ -72,6 +72,88 @@
     (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1],
   ];
 
+  // ---------- painted by hand (brush.js primitives, viewBox units) ----------
+  // 松: a bent trunk with bark scales, branches reaching sideways, needles fanned in tiers
+  const inkPine = (B, x, y, h, o = {}) => {
+    const lean = o.lean ?? 1, r = B.r;
+    const top = [x - 4 * lean, y - h];
+    B.stroke([[x + 1, y], [x + 3 * lean, y - h * .35], [x - 1 * lean, y - h * .7], top], 2.4, { a: .92, dry: .55 });
+    B.stroke([[x + 2.2, y - 1], [x + 4.4 * lean, y - h * .36], [x + .6 * lean, y - h * .68]], 1, { a: .5, dry: .9 });
+    for (let i = 0; i < 6; i++) {
+      const t = .12 + i * .1, bx = x + 3 * lean * Math.sin(t * Math.PI) - 1, by = y - h * t;
+      B.stroke([[bx - 1, by], [bx + .8, by - 1.2]], .5, { a: .6 });
+    }
+    const tiers = o.tiers ?? [[.5, -1, 15], [.62, 1, 12], [.76, -1, 11], [.9, 1, 9], [1.0, -.4, 6]];
+    for (const [t, side, len] of tiers) {
+      const bx = x + (t > .7 ? -1.5 : 1.5) * lean, by = y - h * t;
+      const ex = bx + side * len * lean, ey = by - 2 - r() * 2;
+      B.stroke([[bx, by], [bx + side * len * .5 * lean, by + 1], [ex, ey]], 1.1, { a: .85, dry: .5 });
+      B.needles(ex, ey, 5.5 + len * .25, { a: .78, n: 13 });
+      B.needles(bx + side * len * .45 * lean, by - .5, 4 + len * .15, { a: .65, n: 9, wash: .1 });
+    }
+  };
+
+  const paint1 = B => {
+    const r = B.r;
+    // paper under the farmhouse, so the far hills stop at its eaves
+    B.paper([[40, 52], [68, 22], [132, 22], [160, 52], [150, 58], [150, 90], [50, 90], [50, 58]], 7);
+    // 茅葺: the roof is laid in with the side of the brush, darker toward the ridge
+    for (let i = 0; i < 11; i++) {
+      const y = 25 + i * 2.55, spread = (y - 22) * 1.12;
+      B.side([[131 + spread + r() * 2, y + r()], [100, y - .4 + r() * .8], [69 - spread - r() * 2, y + .5]], 3.4, { a: .62 - i * .035, dry: .75 + r() * .3 });
+    }
+    B.stroke([[64, 23.5], [100, 21.4], [136, 23.5]], 2.2, { a: .95, dry: .35 });
+    B.stroke([[69, 22.5], [52, 37], [35, 52.5]], 1.7, { a: .9, dry: .5 });
+    B.stroke([[131, 22.5], [149, 37.5], [166, 52.5]], 1.7, { a: .85, dry: .6 });
+    B.side([[34, 53], [100, 52], [167, 53.4]], 1.6, { a: .55, dry: .9 });
+    // the walls are only suggested; their feet go into the mist
+    B.stroke([[48.5, 54], [48.2, 70], [48.8, 84]], 1.2, { a: .75, dry: .95 });
+    B.stroke([[151.5, 54], [151.8, 74]], 1.2, { a: .7, dry: 1 });
+    B.stroke([[52, 62.5], [100, 62], [148, 62.8]], .7, { a: .35, dry: .9 });
+    // the open door: dark inside, laid in with a few vertical sweeps
+    B.blob(67.2, 82, 8.2, 12, { a: .55, rough: .12 });
+    B.side([[60, 71], [60.4, 90]], 2.2, { a: .35, dry: .9 });
+    B.side([[73.8, 72], [73.5, 88]], 1.8, { a: .3, dry: 1 });
+    B.stroke([[58, 69.5], [58.3, 91]], .9, { a: .7, dry: .6 });
+    B.stroke([[76.3, 70], [76, 88]], .8, { a: .55, dry: .8 });
+    // the window: the television's light, and the two of us in front of it
+    const night = B.time === 'night', eve = B.time === 'evening';
+    B.glow(97, 65.5, 40, 24, 'rgb(190, 214, 224)', night ? .9 : eve ? .6 : .38, 2.6);
+    B.glow(100.5, 68.5, 33, 18, 'rgb(214, 232, 238)', night ? .95 : .55, .8);
+    B.blob(111, 76.6, 2.9, 3.1, { a: .95, rough: .2 });
+    B.blob(111, 86.5, 6.2, 5, { a: .9, rough: .25 });
+    B.blob(124, 79.5, 2.3, 2.4, { a: .95, rough: .2 });
+    B.blob(124, 87, 4.6, 4, { a: .88, rough: .25 });
+    B.paper([[96, 87.8], [140, 87.8], [140, 94], [96, 94]], .6);
+    B.stroke([[98.5, 66.5], [135.5, 66.8]], 1, { a: .8, dry: .4 });
+    B.stroke([[98.7, 66.8], [98.5, 88.5]], .8, { a: .65, dry: .6 });
+    B.stroke([[135.6, 67], [135.4, 87.5]], .8, { a: .55, dry: .7 });
+    // the cow, 没骨: blots and a few lines
+    B.blob(192, 82, 13.5, 6.4, { a: .16, rough: .3 });
+    B.blob(187.5, 80, 3.6, 2.3, { a: .7 });
+    B.blob(196.5, 84, 2.6, 1.6, { a: .6 });
+    B.blob(206.8, 78.2, 4.2, 3, { a: .85, rot: .3 });
+    B.stroke([[179, 81], [191, 75.4], [204, 78.5]], .8, { a: .55, dry: .7 });
+    B.stroke([[180, 83], [192, 88.6], [203, 85]], .6, { a: .35, dry: .9 });
+    for (const lx of [183, 187, 198, 202]) B.stroke([[lx, 87.5], [lx + .3, 95.6]], .7, { a: .8, dry: .3 });
+    B.stroke([[178.6, 80], [175.5, 84], [176.5, 88.5]], .45, { a: .6 });
+    B.stroke([[206, 75.4], [205.3, 72.6]], .4, { a: .7 }); B.stroke([[208.6, 75.6], [210, 73]], .4, { a: .7 });
+    // the fence, dry and broken
+    for (const fx of [168, 181.5, 216]) B.stroke([[fx, 96], [fx + .2, 84]], .65, { a: .7, dry: .8 });
+    B.side([[166, 87.6], [192, 87.2], [218, 87.8]], .55, { a: .55, dry: 1.1 });
+    B.side([[166, 91.6], [218, 91.2]], .5, { a: .45, dry: 1.1 });
+    // the pine that leans over the yard
+    inkPine(B, 16, 97, 64);
+    // ground: a dry stroke or two and 苔点, no line
+    B.side([[0, 97], [50, 96.2], [112, 97]], 1.6, { a: .32, dry: 1.1 });
+    B.side([[130, 96.8], [222, 96.2]], 1.2, { a: .28, dry: 1.1 });
+    for (let i = 0; i < 22; i++) {
+      const gx = r() * 220, gy = 95 + r() * 3;
+      if (gx > 44 && gx < 156 && gy < 96.5) continue;
+      B.dot(gx, gy, .45 + r() * .5, { a: .55 + r() * .3, wide: 1.6 });
+    }
+  };
+
   // ---------- 1. 夜更かしの窓 ----------
   const s1 = (() => {
     let thatch = '';
@@ -339,7 +421,7 @@
 
   const scenes = [
     {
-      id: 'yofukashi', no: '一', title: '夜更かしの窓', era: '七つの頃', w: 220, svg: s1,
+      id: 'yofukashi', no: '一', title: '夜更かしの窓', era: '七つの頃', w: 220, svg: s1, paint: paint1,
       kotoba: ['父と夜更かしして、', 'テレビの中の牧場をのぞいていた。', '畑が育ち、村人が暮らしていた。', '画面の向こうに、世界があった。'],
       more: `<p>PS2 の牧場物語。手をかけた畑や動物が育っていくこと、そしてその世界の住民が、そこでちゃんと暮らしているとわかったこと。それが楽しくて、楽しくて仕方がなかった。</p><p>七つの頃の、夜の部屋と、テレビの光と、隣にいた父。画面の向こうに世界がある、という感覚は、今もそのまま残っている。</p>`,
     },

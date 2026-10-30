@@ -39,17 +39,25 @@
 
   // ---------- mountain layers (far → near) ----------
   const LAYERS = [
-    { f: .05, base: .44, amp: .28, a: .2, fade: .24, sc: 1.1, seed: 11, ridged: true, trees: 0 },
-    { f: .13, base: .53, amp: .22, a: .3, fade: .2, sc: .7, seed: 23, ridged: true, trees: 0 },
-    { f: .28, base: .62, amp: .14, a: .38, fade: .17, sc: .48, seed: 37, ridged: false, trees: .3 },
-    { f: .52, base: .71, amp: .09, a: .5, fade: .14, sc: .34, seed: 41, ridged: false, trees: .5 },
-    { f: 1, base: .815, amp: .012, a: .18, fade: .1, sc: .25, seed: 53, ridged: false, trees: 0 },
+    { f: .05, base: .46, amp: .3, a: .2, fade: .24, sc: 1.1, seed: 11, ridged: true, dots: 0, gap: .45 },
+    { f: .13, base: .55, amp: .24, a: .28, fade: .2, sc: .7, seed: 23, ridged: true, dots: .35, gap: .5 },
+    { f: .28, base: .64, amp: .15, a: .32, fade: .16, sc: .48, seed: 37, ridged: false, dots: .9, gap: .55 },
+    { f: .52, base: .72, amp: .09, a: .36, fade: .12, sc: .34, seed: 41, ridged: false, dots: 1.1, gap: .6 },
+    { f: 1, base: .815, amp: .012, a: .12, fade: .08, sc: .25, seed: 53, ridged: false, dots: 0, gap: 0 },
   ];
+  // 余白: hills come in groups with open mist between them
+  const presence = (L, x) => {
+    if (!L.gap) return 1;
+    const v = fbm(x / (H * L.sc * 3.2), L.seed + 99);
+    const t = Math.min(1, Math.max(0, (v - L.gap + .14) / .2));
+    return t * t * (3 - 2 * t);
+  };
   const ridge = (L, x) => {
     let n = fbm(x / (H * L.sc), L.seed);
     n = Math.min(1, Math.max(0, (n - .22) / .56));
     if (L.ridged) n = Math.pow(1 - Math.abs(2 * n - 1) * .9, 1.7) * .55 + n * .45;
-    return H * L.base - H * L.amp * n;
+    const m = presence(L, x);
+    return H * L.base - H * L.amp * n * (.2 + .8 * m) + H * .05 * (1 - m);
   };
 
   // ---------- colors from CSS ----------
@@ -76,15 +84,15 @@
     const x0 = k * TILE, step = 2;
     const pts = [];
     for (let x = -step; x <= TILE + step; x += step) pts.push([x, ridge(L, x0 + x)]);
-    // wash: each column is ink at the ridge, dissolving downward into paper — the mist is what's left out
     const fadeAt = x => H * L.fade * (.65 + vnoise((x0 + x) / 90, L.seed + 2) * .7);
+    const m = x => presence(L, x0 + x);
+    // a pale wash under each ridge, thinning to nothing: the mist is what's left out
     for (let i = 0; i < pts.length - 1; i++) {
       const [x, y] = pts[i];
-      const len = fadeAt(x);
+      const len = fadeAt(x), a = L.a * .55 * (.2 + .8 * m(x));
       const gr = g.createLinearGradient(0, y, 0, y + len);
-      gr.addColorStop(0, `rgba(${C.ink}, ${L.a})`);
-      gr.addColorStop(.25, `rgba(${C.ink}, ${L.a * .55})`);
-      gr.addColorStop(.6, `rgba(${C.ink}, ${L.a * .16})`);
+      gr.addColorStop(0, `rgba(${C.ink}, ${a})`);
+      gr.addColorStop(.3, `rgba(${C.ink}, ${a * .45})`);
       gr.addColorStop(1, `rgba(${C.ink}, 0)`);
       g.fillStyle = gr;
       g.beginPath();
@@ -92,48 +100,51 @@
       g.lineTo(pts[i + 1][0], y + len); g.lineTo(x, y + len);
       g.closePath(); g.fill();
     }
-    // 皴 — a few hanging strokes for the grain of the rock
-    for (let x = 0; x <= TILE; x += 4) {
-      const r = hash(x0 + x, L.seed + 7);
-      if (r > .07) continue;
-      const y = ridge(L, x0 + x);
-      const len = fadeAt(x) * (.1 + hash(x0 + x, L.seed + 9) * .25);
-      const gr = g.createLinearGradient(0, y, 0, y + len);
-      gr.addColorStop(0, `rgba(${C.ink}, ${L.a * .9})`);
-      gr.addColorStop(1, `rgba(${C.ink}, 0)`);
-      g.strokeStyle = gr;
-      g.lineWidth = .8 + r * 8;
-      g.beginPath(); g.moveTo(x, y + 1); g.quadraticCurveTo(x + (r - .08) * 40, y + len * .5, x - 3, y + len); g.stroke();
-    }
-    // ridge line, drawn twice with a little wobble like a brush
-    g.lineCap = 'round';
-    for (let pass = 0; pass < 2; pass++) {
-      g.strokeStyle = `rgba(${C.ink}, ${Math.min(.85, L.a * (pass ? .7 : 1.35))})`;
-      g.lineWidth = (.7 + L.f * 1.8) * (pass ? 2.2 : 1);
-      g.beginPath();
-      pts.forEach(([x, y], i) => {
-        const w = pass ? (vnoise((x0 + x) / 23, L.seed + 40) - .5) * 1.6 : 0;
-        i ? g.lineTo(x, y + w) : g.moveTo(x, y + w);
-      });
-      g.stroke();
-    }
-    // trees on the ridge
-    if (L.trees) {
-      const sz = H * (.008 + L.f * .02);
-      for (let x = 0; x <= TILE; x += 7) {
-        const r = hash(x0 + x, L.seed + 3);
-        if (r > L.trees * .32) continue;
-        const y = ridge(L, x0 + x) + sz * .15;
-        const h = sz * (1 + hash(x0 + x, L.seed + 5) * 1.3);
-        g.strokeStyle = `rgba(${C.ink}, ${L.a * 1.6})`;
-        g.fillStyle = `rgba(${C.ink}, ${L.a * 1.1})`;
-        g.lineWidth = Math.max(.6, h * .06);
-        g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - h); g.stroke();
-        for (let t = 0; t < 3; t++) {
-          const ty = y - h * (.45 + t * .22), rx = h * (.34 - t * .08);
-          g.beginPath(); g.ellipse(x, ty, rx, rx * .32, 0, 0, Math.PI * 2); g.fill();
+    // 米点: the hills are built from soft horizontal dots, thick at the crest, thinning into mist
+    if (L.dots) {
+      // dots live on a world grid so neighbouring tiles agree; draw the ones that reach into this tile
+      const cell = 24, pad = 40;
+      const c0 = Math.floor((x0 - pad) / cell), c1 = Math.floor((x0 + TILE + pad) / cell);
+      const per = Math.round(cell * L.dots);
+      for (let c = c0; c <= c1; c++) {
+        for (let j = 0; j < per; j++) {
+          const id = c * 997 + j;
+          const gx = (c + hash(id, L.seed + 61)) * cell;
+          const x = gx - x0;
+          const mm = presence(L, gx);
+          if (hash(id, L.seed + 62) > mm * 1.1) continue;
+          const fd = H * L.fade * (.65 + vnoise(gx / 90, L.seed + 2) * .7);
+          // most dots crowd the crest; a few wander down into the mist
+          const t = Math.pow(hash(id, L.seed + 63), 2.3);
+          const y = ridge(L, gx) + t * fd * .85 + H * .002;
+          const big = hash(id, L.seed + 66);
+          const rr = H * (.003 + .006 * L.f) * (.45 + big * big * 1.4);
+          const a = Math.min(.85, L.a * (1.2 + hash(id, L.seed + 67) * 1.1) * Math.pow(1 - t, 1.6) * (.35 + .65 * mm));
+          if (a < .015) continue;
+          g.save();
+          g.translate(x, y);
+          g.rotate((hash(id, L.seed + 65) - .5) * .3);
+          g.scale(1.6 + big * .9, .75);
+          const gr = g.createRadialGradient(0, 0, 0, 0, 0, rr);
+          gr.addColorStop(0, `rgba(${C.ink}, ${a})`);
+          gr.addColorStop(.45, `rgba(${C.ink}, ${a * .8})`);
+          gr.addColorStop(1, `rgba(${C.ink}, 0)`);
+          g.fillStyle = gr;
+          g.beginPath(); g.arc(0, 0, rr, 0, Math.PI * 2); g.fill();
+          g.restore();
         }
       }
+    }
+    // the crest: a dry, broken line, only where the hill is present
+    g.lineCap = 'round';
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x, y] = pts[i];
+      const dry = vnoise((x0 + x) / 17, L.seed + 40);
+      const a = L.a * 1.25 * m(x) * (dry > .35 ? 1 : dry / .35);
+      if (a < .02 || !L.gap) continue;
+      g.strokeStyle = `rgba(${C.ink}, ${Math.min(.85, a)})`;
+      g.lineWidth = (.6 + L.f * 1.6) * (.7 + dry * .8);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(pts[i + 1][0], pts[i + 1][1]); g.stroke();
     }
     return c;
   };
@@ -214,7 +225,7 @@
         bctx.fillStyle = `rgba(235, 230, 214, ${a})`;
         bctx.beginPath(); bctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); bctx.fill();
       }
-      const mx = W * .74, my = H * .2, r = U * .045;
+      const mx = W * .3, my = H * .17, r = U * .045;
       const halo = bctx.createRadialGradient(mx, my, r * .8, mx, my, r * 5);
       halo.addColorStop(0, 'rgba(240, 235, 215, .22)'); halo.addColorStop(1, 'rgba(240, 235, 215, 0)');
       bctx.fillStyle = halo; bctx.beginPath(); bctx.arc(mx, my, r * 5, 0, Math.PI * 2); bctx.fill();
@@ -222,7 +233,7 @@
       bctx.beginPath(); bctx.arc(mx, my, r, 0, Math.PI * 2); bctx.fill();
       return;
     }
-    const sun = { morning: [.7, .3, .045, .45], day: [.62, .14, .04, .12], evening: [.3, .37, .065, .7] }[tm];
+    const sun = { morning: [.34, .31, .045, .45], day: [.4, .13, .04, .12], evening: [.3, .37, .065, .7] }[tm];
     if (sun) {
       const [sx, sy, sr, a] = sun;
       bctx.fillStyle = C.shu;
@@ -338,9 +349,12 @@
       more.textContent = 'つづきを読む';
       more.addEventListener('click', () => openScene(s));
       k.appendChild(more);
-      el.append(art, k);
+      const paintC = document.createElement('canvas');
+      paintC.className = 'paint';
+      paintC.setAttribute('aria-hidden', 'true');
+      el.append(paintC, art, k);
       world.appendChild(el);
-      items.push({ el, art, scene: s });
+      items.push({ el, art, paint: paintC, scene: s, dirty: true });
     }
 
     const armor = world.querySelector('.armor');
@@ -404,7 +418,43 @@
     maxP = Math.max(0, worldW - W);
     p = target = ratio * maxP;
     items.forEach(it => { it.mark.style.left = `${100 - (centerP(it) / maxP) * 100}%`; });
+    PAINT_M = Math.round(U * .06);
+    for (const it of items) {
+      if (!it.paint) continue;
+      it.paint.style.left = `${-PAINT_M}px`;
+      it.paint.style.bottom = `calc(100% - var(--ground) - ${PAINT_M}px)`;
+      it.dirty = true;
+    }
     seedAmbient();
+  };
+
+  // ---------- brushwork: repaint one scene per frame, nearest first ----------
+  let PAINT_M = 0;
+  const hexRgb = h => {
+    h = h.trim().replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16);
+    return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+  };
+  const brushColors = () => {
+    const cs = getComputedStyle(root);
+    return {
+      line: hexRgb(cs.getPropertyValue('--line')), shu: hexRgb(cs.getPropertyValue('--shu')),
+      paperCss: cs.getPropertyValue('--paper').trim(), wash: parseFloat(cs.getPropertyValue('--wash')) || .13,
+      time: root.dataset.time, glow: cs.getPropertyValue('--glow').trim(), screen: cs.getPropertyValue('--screen').trim(),
+    };
+  };
+  const paintNext = camX => {
+    if (!window.BRUSH) return;
+    let best = null, bd = Infinity;
+    for (const it of items) {
+      if (!it.dirty || !it.paint) continue;
+      const d = Math.abs(it.x + it.w / 2 - (camX + W / 2));
+      if (d < bd) { bd = d; best = it; }
+    }
+    if (!best) return;
+    window.BRUSH.paint(best.art, best.paint, PAINT_M, brushColors(), DPR, best.scene.paint);
+    best.dirty = false;
   };
 
   const centerP = it => Math.min(maxP, Math.max(0, maxP - (it.x + it.w / 2 - W / 2)));
@@ -429,6 +479,8 @@
       for (let k = k0; k <= k1; k++) bctx.drawImage(getTile(li, k), k * TILE - lx, 0, TILE, H);
       if (li < LAYERS.length - 1) drawMist(bctx, li, t, camX);
     });
+
+    paintNext(camX);
 
     fctx.clearRect(0, 0, W, H);
     drawGroundMist(t, camX);
@@ -678,6 +730,7 @@
       window.SOUND?.setTime(tm);
       readColors();
       tiles.clear();
+      items.forEach(it => { it.dirty = true; });
       document.querySelector('meta[name="theme-color"]').content = getComputedStyle(root).getPropertyValue('--paper').trim();
     }
     document.querySelectorAll('.times button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.time === timeMode)));

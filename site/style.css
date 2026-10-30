@@ -29,16 +29,17 @@
   --ui-bg: rgba(236, 220, 196, .82);
 }
 :root[data-time="night"] {
-  --paper: #1c2230;
-  --ink: 6, 8, 13;
-  --mist: 46, 54, 72;
-  --line: #d9d2c2;
+  /* a night painting: toned paper, ink still darker than the paper, only lamps and the moon are light */
+  --paper: #29303f;
+  --ink: 8, 10, 16;
+  --mist: 70, 80, 102;
+  --line: #0b0e15;
   --text: #e6dfcf;
-  --muted: #9a9484;
+  --muted: #a49e8e;
   --spirit: 214, 240, 196;
-  --ui-bg: rgba(28, 34, 48, .82);
+  --ui-bg: rgba(41, 48, 63, .85);
   --mist-k: .5;
-  --wash: .1;
+  --wash: .3;
   color-scheme: dark;
 }
 
@@ -93,6 +94,9 @@ a { color: inherit; }
 }
 .scene .art:focus-visible { outline: 1px dashed var(--shu); outline-offset: 6px; }
 .scene .art g.drawing { filter: url(#brush); }
+.scene .paint { position: absolute; pointer-events: none; }
+/* residents that move stay SVG; give their silhouettes a wet edge so they sit in the painting */
+.scene .art :is(.pace, .peck, .bob, .hachi) .sil { filter: url(#inkblot); opacity: .8; }
 
 .kotoba {
   position: absolute;

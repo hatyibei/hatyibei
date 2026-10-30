@@ -25,6 +25,11 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n" />
       <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G" />
     </filter>
+    <filter id="inkblot" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="3" result="n" />
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="d" />
+      <feGaussianBlur in="d" stdDeviation="0.35" />
+    </filter>
     <filter id="smoke" x="-200%" y="-200%" width="500%" height="500%">
       <feGaussianBlur stdDeviation="1.6" />
     </filter>
@@ -83,6 +88,7 @@
   </noscript>
 
   <script src="sound.js" defer></script>
+  <script src="brush.js" defer></script>
   <script src="scenes.js" defer></script>
   <script src="main.js" defer></script>
 </body>
